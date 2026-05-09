@@ -37,6 +37,16 @@ logging:
     path: ./logs/WeituTravel/
 
 
+retrieval:
+  hybrid:
+    vector-top-k: 5
+    bm25-top-k: 5
+    vector-weight: 0.6
+    bm25-weight: 0.4
+    relevance-threshold: 0.3
+    final-top-k: 5
+
+
 # 业务配置
 booking:
   stock-id: 10001

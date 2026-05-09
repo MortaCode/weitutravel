@@ -1,4 +1,4 @@
-package com.myy.weitutravel.chat.advisor;
+package com.myy.weitutravel.chat.service.advisor;
 
 import com.myy.weitutravel.chat.service.HierarchicalRetrieverService;
 import lombok.RequiredArgsConstructor;

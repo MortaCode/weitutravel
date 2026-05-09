@@ -2,11 +2,10 @@ package com.myy.weitutravel.common.config;
 
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
-import com.myy.weitutravel.chat.advisor.ChatMemoryAdvisor;
-import com.myy.weitutravel.chat.advisor.RAGAdvisor;
+import com.myy.weitutravel.chat.service.advisor.MemoryAdvisor;
+import com.myy.weitutravel.chat.service.advisor.RAGAdvisor;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 public class ChatConfig {
 
     @Resource
-    private ChatMemoryAdvisor chatMemoryAdvisor;
+    private MemoryAdvisor memoryAdvisor;
 
     @Resource
     private RAGAdvisor ragAdvisor;
@@ -28,7 +27,7 @@ public class ChatConfig {
         return ChatClient.builder(chatModel)
                 .defaultOptions(OpenAiChatOptions.builder().temperature(0.7).build())
                 .defaultAdvisors(ragAdvisor)           // 先执行RAG检索
-                .defaultAdvisors(chatMemoryAdvisor)    // 再执行对话记忆
+                .defaultAdvisors(memoryAdvisor)    // 再执行对话记忆
                 .defaultSystem("""
                     你是微旅旅行平台的智能旅游规划助手，名叫“微旅向导”。
                     你的核心职责：根据用户需求，自主规划旅游行程，并调用平台工具完成实时信息查询、攻略推荐、门票与优惠券处理等操作。
@@ -53,7 +52,7 @@ public class ChatConfig {
                         .temperature(0.5)
                         .build())
                 .defaultAdvisors(ragAdvisor)           // 先执行RAG检索
-                .defaultAdvisors(chatMemoryAdvisor)    // 再执行对话记忆
+                .defaultAdvisors(memoryAdvisor)    // 再执行对话记忆
                 .defaultSystem("""
                     你是微旅旅行平台的智能旅游规划助手，名叫“微旅向导”。
                     你的核心职责：根据用户需求，自主规划旅游行程，并调用平台工具完成实时信息查询、攻略推荐、门票与优惠券处理等操作。

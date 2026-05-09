@@ -4,17 +4,15 @@ import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
-class HierarchicalRetrieverServiceTest {
+class HierarchicalRetrieverSingleServiceTest {
 
     @Resource
-    HierarchicalRetrieverService hierarchicalRetrieverService;
+    HierarchicalRetrieverSingleService hierarchicalRetrieverSingleService;
 
 
     @Test
     void addDocuments() {
-        hierarchicalRetrieverService.addDocuments();
+        hierarchicalRetrieverSingleService.addDocuments();
     }
 }

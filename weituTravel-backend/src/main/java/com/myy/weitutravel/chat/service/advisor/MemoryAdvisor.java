@@ -1,4 +1,4 @@
-package com.myy.weitutravel.chat.advisor;
+package com.myy.weitutravel.chat.service.advisor;
 
 import cn.hutool.core.util.IdUtil;
 import com.myy.weitutravel.chat.service.memory.ChatMemoryService;
@@ -23,7 +23,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class ChatMemoryAdvisor implements CallAdvisor, StreamAdvisor {
+public class MemoryAdvisor implements CallAdvisor, StreamAdvisor {
 
     private final ChatMemoryService chatMemoryService;
 
@@ -31,14 +31,14 @@ public class ChatMemoryAdvisor implements CallAdvisor, StreamAdvisor {
     private static final int DEFAULT_CONTEXT_WINDOW = 10;
     private int contextWindowSize = DEFAULT_CONTEXT_WINDOW;
 
-    public ChatMemoryAdvisor(ChatMemoryService chatMemoryService) {
+    public MemoryAdvisor(ChatMemoryService chatMemoryService) {
         this.chatMemoryService = chatMemoryService;
     }
 
     /**
      * 设置上下文窗口大小
      */
-    public ChatMemoryAdvisor withContextWindowSize(int size) {
+    public MemoryAdvisor withContextWindowSize(int size) {
         this.contextWindowSize = size;
         return this;
     }
