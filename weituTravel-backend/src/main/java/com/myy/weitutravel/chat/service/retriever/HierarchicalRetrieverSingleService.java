@@ -1,4 +1,4 @@
-package com.myy.weitutravel.chat.service;
+package com.myy.weitutravel.chat.service.retriever;
 
 import com.myy.weitutravel.chat.service.handler.MarkdownReaderHandler;
 import lombok.RequiredArgsConstructor;

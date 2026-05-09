@@ -1,6 +1,6 @@
 package com.myy.weitutravel.chat.service.advisor;
 
-import com.myy.weitutravel.chat.service.HierarchicalRetrieverService;
+import com.myy.weitutravel.chat.service.retriever.HierarchicalRetrieverService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;

@@ -2,6 +2,7 @@ package com.myy.weitutravel.chat.service.handler;
 
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -11,10 +12,9 @@ public class RecursiveSplitHandler {
 
     private static final int TARGET_CHUNK_SIZE = 512;   // 目标token数
 
-    // 分隔符优先级：段落 > 换行 > 句子 > 分句 > 单词
+    // 分隔符优先级：段落 > 句子 > 分句 > 单词
     private final String[][] separators = {
             {"\n\n", "paragraph"},      // 段落分隔符
-            {"\n", "line"},             // 换行分隔符
             {"。", "sentence"},         // 句子分隔符(中文)
             {".", "sentence"},          // 句子分隔符(英文)
             {"，", "clause"},           // 分句分隔符(中文)
@@ -49,33 +49,42 @@ public class RecursiveSplitHandler {
             return Collections.singletonList(document);
         }
 
-        // 根据分隔符分块
+        // 分隔符分块
         for (String[] separatorInfo : separators) {
             String separator = separatorInfo[0];
             String level = separatorInfo[1];
-
             if (separator.isEmpty()) continue;
 
+            /**
+             * 尝试使用分隔符A（如段落分隔符）
+             *     ├─ 如果成功（所有块 ≤ 目标大小）→ 返回
+             *     └─ 如果存在超大块 → 降级使用更细粒度的分隔符B（如句子分隔符）
+             *          └─ 递归处理超大块
+             */
             String[] parts = document.getText().split(Pattern.quote(separator), -1);
-
             if (parts.length > 1) {
-                //合并那些小于目标token的块
-                List<Document> splitResult = trySplitWithSeparator(
-                        document, parts, separator, level
-                );
-
-                if (splitResult != null && !splitResult.isEmpty()) {
+                List<Document> splitResult = trySplitWithSeparator(document, parts, separator, level);//贪心算法：尽可能填满目标token值
+                if (!CollectionUtils.isEmpty(splitResult)) {
                     List<Document> finalResult = new ArrayList<>();
                     for (Document subDoc : splitResult) {
-                        // 递归处理每个子块
-                        finalResult.addAll(recursiveSplitDocument(subDoc));
+                        if (estimateTokenCount(subDoc.getText()) > TARGET_CHUNK_SIZE) {
+                            finalResult.addAll(recursiveSplitDocument(subDoc));// 如果子文档仍然过大，递归处理
+                        } else {
+                            finalResult.add(subDoc);
+                        }
                     }
-                    return finalResult;
+                    return finalResult;  //退出循环，不在分块
                 }
             }
         }
 
-        // 兜底策略：按字符精确切分
+        /**
+         * 精确字符切分（兜底）
+         *     └─ 尝试在边界附近寻找更优切点
+         *          ├─ 优先：空格（英语等空格分隔语言）
+         *          └─ 备选：标点符号（中英文标点）
+         * 应对情况：①完全没有分隔符，②分割成至少2个部分[parts.length > 1], ③所有分隔符分割后都有超大块
+         */
         return splitByCharacterExact(document);
     }
 
@@ -91,7 +100,7 @@ public class RecursiveSplitHandler {
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i];
 
-            // 跳过空内容
+            // 空
             if (part.trim().isEmpty() && i < parts.length - 1) {
                 if (currentChunk.length() > 0) {
                     currentChunk.append(separator);
@@ -99,9 +108,10 @@ public class RecursiveSplitHandler {
                 continue;
             }
 
+            //  估值token
             int partTokenCount = estimateTokenCount(part);
 
-            // 单个部分本身大于目标大小，需要使用更细的分隔符
+            // 单个part已经大于目标token值
             if (partTokenCount > TARGET_CHUNK_SIZE) {
                 // 先保存当前累积的块
                 if (currentChunk.length() > 0) {
@@ -109,11 +119,12 @@ public class RecursiveSplitHandler {
                     currentChunk = new StringBuilder();
                     currentTokenCount = 0;
                 }
-                // 这个大的部分会在外层递归中被处理，这里跳过
+                // 将这个超大块作为独立文档添加，递归时会进一步处理
+                result.add(createDocument(document, part, level + "_needs_finer"));
                 continue;
             }
 
-            // 如果加上当前部分会超过目标大小，保存当前块并开始新块
+            // 合并token情况
             if (currentTokenCount + partTokenCount > TARGET_CHUNK_SIZE &&
                     currentChunk.length() > 0) {
                 result.add(createDocument(document, currentChunk.toString().trim(), level));
@@ -130,7 +141,7 @@ public class RecursiveSplitHandler {
             }
         }
 
-        // 添加最后一个块
+        // 添加最后一个块[上面都是add上一个的]
         if (currentChunk.length() > 0) {
             result.add(createDocument(document, currentChunk.toString().trim(), level));
         }
@@ -151,14 +162,13 @@ public class RecursiveSplitHandler {
             String subContent = content.substring(i, end);
 
             // 尽量在空格或标点处切分，避免切在单词中间
-            if (end < contentLength && end - i == TARGET_CHUNK_SIZE) {
-                int breakPoint = findBreakPoint(content, end, Math.max(i, end - 20));
-                if (breakPoint > i) {
-                    end = breakPoint;
+            if (end < content.length() && !isNaturalBoundary(content.charAt(end-1))) { //不是最后一轮 且 最后一位不是空格or标点处
+                int newEnd = findBetterBreak(content, end, Math.max(i, end-20)); //仅在末尾20字符区域内寻找断点
+                if (newEnd > i) {
+                    end = newEnd;
                     subContent = content.substring(i, end);
                 }
             }
-
             result.add(createDocument(document, subContent, "character"));
         }
 
@@ -166,9 +176,18 @@ public class RecursiveSplitHandler {
     }
 
     /**
+     * 最后一位字符不是空格or标点处
+     * @param c
+     * @return
+     */
+    private boolean isNaturalBoundary(char c) {
+        return Character.isWhitespace(c) || ".,!?;:，。；：！？".indexOf(c) >= 0;
+    }
+
+    /**
      * 查找合适的断点位置（避免切在单词中间）
      */
-    private int findBreakPoint(String content, int currentEnd, int searchStart) {
+    private int findBetterBreak(String content, int currentEnd, int searchStart) {
         String searchArea = content.substring(searchStart, currentEnd);
 
         // 优先查找空格
@@ -184,7 +203,6 @@ public class RecursiveSplitHandler {
                 return searchStart + i + 1;
             }
         }
-
         return currentEnd;
     }
 
@@ -211,8 +229,14 @@ public class RecursiveSplitHandler {
      */
     private int estimateTokenCount(String text) {
         if (text == null || text.isEmpty()) return 0;
-        String[] words = text.split("\\s+");
+        String[] words = text.split("\\s+");//一个或多个空白字符[空格  \t  \n  \r  \f]
         int englishTokens = words.length;
+        /**
+         * []：括号内的任一字符
+         * ^：取反
+         * \\u4e00和\\u9fa5： Unicode中的中文起点、中文终点
+         * -：范围连接符
+         */
         int chineseChars = text.replaceAll("[^\\u4e00-\\u9fa5]", "").length();
         return englishTokens + chineseChars;
     }

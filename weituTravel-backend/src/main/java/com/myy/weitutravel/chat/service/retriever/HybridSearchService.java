@@ -1,5 +1,6 @@
-package com.myy.weitutravel.chat.service;
+package com.myy.weitutravel.chat.service.retriever;
 
+import com.myy.weitutravel.chat.service.retriever.Bm25Retriever;
 import com.myy.weitutravel.common.config.HybridRetrievalConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
