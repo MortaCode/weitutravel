@@ -1,6 +1,6 @@
 package com.myy.weitutravel.chat.advisor;
 
-import com.myy.weitutravel.chat.service.KnowledgeBaseService;
+import com.myy.weitutravel.chat.service.HierarchicalRetrieverService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RAGAdvisor implements CallAdvisor, StreamAdvisor {
 
-    private final KnowledgeBaseService knowledgeBaseService;
+    private final HierarchicalRetrieverService hierarchicalRetrieverService;
 
     // RAG 系统提示词模板
     private static final String RAG_SYSTEM_PROMPT = """
@@ -53,7 +53,7 @@ public class RAGAdvisor implements CallAdvisor, StreamAdvisor {
         }
 
         // 2. 从知识库检索相关内容
-        String relevantContext = knowledgeBaseService.retrieveRelevantContext(userQuery, 5);
+        String relevantContext = hierarchicalRetrieverService.retrieveRelevantContext(userQuery, 5);
 
         // 3. 构建增强的Prompt
         ChatClientRequest enhancedRequest = enhanceRequestWithContext(request, relevantContext);
@@ -71,7 +71,7 @@ public class RAGAdvisor implements CallAdvisor, StreamAdvisor {
             return chain.nextStream(request);
         }
 
-        String relevantContext = knowledgeBaseService.retrieveRelevantContext(userQuery, 5);
+        String relevantContext = hierarchicalRetrieverService.retrieveRelevantContext(userQuery, 5);
         ChatClientRequest enhancedRequest = enhanceRequestWithContext(request, relevantContext);
 
         return chain.nextStream(enhancedRequest);

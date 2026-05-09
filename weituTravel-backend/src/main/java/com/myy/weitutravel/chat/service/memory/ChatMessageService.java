@@ -1,4 +1,4 @@
-package com.myy.weitutravel.chat.service;
+package com.myy.weitutravel.chat.service.memory;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.myy.weitutravel.chat.entity.ChatMessage;

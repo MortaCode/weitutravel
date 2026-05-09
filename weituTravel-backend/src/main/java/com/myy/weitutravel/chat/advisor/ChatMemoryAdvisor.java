@@ -1,7 +1,7 @@
 package com.myy.weitutravel.chat.advisor;
 
 import cn.hutool.core.util.IdUtil;
-import com.myy.weitutravel.chat.service.ChatMemoryService;
+import com.myy.weitutravel.chat.service.memory.ChatMemoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;

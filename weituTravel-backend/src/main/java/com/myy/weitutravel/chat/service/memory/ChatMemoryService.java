@@ -1,4 +1,4 @@
-package com.myy.weitutravel.chat.service;
+package com.myy.weitutravel.chat.service.memory;
 
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

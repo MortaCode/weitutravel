@@ -1,5 +1,6 @@
 package com.myy.weitutravel.chat.service;
 
+import com.myy.weitutravel.chat.service.handler.MarkdownReaderHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -13,9 +14,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KnowledgeBaseService {
+public class HierarchicalRetrieverService {
 
     private final VectorStore vectorStore;
+    private final MarkdownReaderHandler markdownReaderHandler;
 
     // 检索相关文档
     public String retrieveRelevantContext(String query, int topK) {
@@ -48,7 +50,8 @@ public class KnowledgeBaseService {
     }
 
     // 添加文档到知识库
-    public void addDocuments(List<Document> documents) {
+    public void addDocuments() {
+        List<Document> documents = markdownReaderHandler.loadMarkdown();
         vectorStore.add(documents);
         log.info("添加 {} 个文档到知识库", documents.size());
     }

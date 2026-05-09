@@ -1,6 +1,6 @@
 package com.myy.weitutravel.chat.controller;
 
-import com.myy.weitutravel.chat.service.ChatMemoryService;
+import com.myy.weitutravel.chat.service.memory.ChatMemoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

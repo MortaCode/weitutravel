@@ -1,4 +1,4 @@
-package com.myy.weitutravel.chat.service;
+package com.myy.weitutravel.chat.service.memory;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
