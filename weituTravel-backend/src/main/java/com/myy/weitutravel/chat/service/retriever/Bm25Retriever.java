@@ -22,6 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class Bm25Retriever {
 
+//    内存索引：使用 ByteBuffersDirectory 在内存中构建 Lucene 索引，不持久化到磁盘。
+//    文档缓存：通过 ConcurrentHashMap<String, Document> 缓存原始文档（org.springframework.ai.document.Document），索引重建时从缓存读取。
+//    索引重建：每次新增/批量添加文档时，都会清空现有索引并基于缓存全量重建（见 rebuildIndex()）。
+//    分析器：使用 Lucene 的 StandardAnalyzer 进行文本分词。
+
     private IndexReader indexReader;
     private IndexSearcher indexSearcher;
     private StandardAnalyzer analyzer;

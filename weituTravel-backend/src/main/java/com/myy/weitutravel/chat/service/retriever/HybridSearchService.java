@@ -112,7 +112,8 @@ public class HybridSearchService {
     }
 
     /**
-     * 分数融合 - 加权求和（Reciprocal Rank Fusion + Weighted Sum）
+     * 分数融合
+     * 主要功能：合并两个查询结果 + 加权分数
      */
     private Map<String, HybridSearchResult> fuseScores(
             List<VectorSearchResult> vectorResults,
@@ -166,7 +167,9 @@ public class HybridSearchService {
     }
 
     /**
-     * 应用RRF（Reciprocal Rank Fusion）优化排序
+     * RRF[倒数排序融合]
+     * 计算公式：rrfScore += 1 / (K + locIndex + 1)
+     * 最终得分：olderScore*0.7 + rrfScore*0.3
      */
     private void applyRRF(
             Map<String, HybridSearchResult> resultMap,

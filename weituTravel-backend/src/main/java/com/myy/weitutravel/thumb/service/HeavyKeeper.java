@@ -62,7 +62,7 @@ public class HeavyKeeper implements TopK {
         int maxCount = 0;
 
         for (int i = 0; i < depth; i++) {
-            int bucketNumber = Math.abs(hash(keyBytes)) % width;
+            int bucketNumber = Math.abs(hash(keyBytes)) % width;   //每行不同哈希
             Bucket bucket = buckets[i][bucketNumber];
 
             synchronized (bucket) {
